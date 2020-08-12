@@ -1,0 +1,82 @@
+---
+title: "HWW7Q1"
+author: "Vera Thut"
+date: "2/23/2020"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+#clean the enviroment
+rm(list=ls())
+#set seedto make results reproductable
+set.seed(55)
+#read data set
+crimedata <- read.table('C:/Users/matpo/Desktop/uscrime.txt', stringsAsFactors = FALSE, header = TRUE)
+#install package "tree"
+#install package "rpart"
+#intsall package "randomForest" 
+library(tree)
+library(rpart)
+library(randomForest)
+#ensure data is read correctly
+head(crimedata)
+####RUN REGRESSION TREE MODEL########
+tree_data <- tree(Crime~., data = crimedata)
+summary(tree_data)
+#in the outcome we see that only 4 predictors we used in the regression tree model "Po1" "Pop" "LF"  "NW" 
+#we can plot the tree to have a better look at it 
+plot(tree_data)
+text(tree_data)
+#I would also like to see how the tree is splot
+tree_data$frame
+#calculate R-squared
+Rsquared <- function(y_hat, y) {
+ssr <- sum((y_hat - y)^2)
+sst <- sum((y - mean(y))^2)  
+Rsquared <- 1 - ssr/sst  
+return(Rsquared)  
+}
+
+y_hat_tree <- predict(tree_data)
+y <- crimedata$Crime
+Rsquared(y_hat_tree, y) 
+#we see that R-squared for tree model is 0.7244962
+#let's build a random forest model now
+#create random tree forest and set number of predictors
+#for each split of the tree (numpred). I will use 5
+numpred <- 5
+randomforest_model <- randomForest(Crime~., data = crimedata, mtry = numpred, importance = TRUE)
+randomforest_model
+plot(randomforest_model)
+importance(randomforest_model)
+varImpPlot(randomforest_model)
+#as we can see in the last plot, Po2, Po1, NW and Prob are the most important in the Random FOrest model
+#I want to predict the value and calculate R-squared for random forest model
+predicton_rf <- predict(randomforest_model)
+ssr <- sum((predicton_rf - crimedata$Crime)^2)
+sst <- sum((crimedata$Crime - mean(crimedata$Crime))^2)
+r_squared_rf <- 1 - (ssr/sst)
+r_squared_rf
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
